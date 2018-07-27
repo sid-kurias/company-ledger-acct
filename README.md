@@ -16,15 +16,14 @@ available is defined in the variable company-ledger-acct-master-file.
 A possible configuration using use-package :
 
 ``` emacs-lisp
-(use-package ledger-mode
-    :mode "\\.ledger"
-    :hook  ((ledger-mode . flycheck-mode)
-            (ledger-mode . (lambda ()
-                             (set (make-local-variable 'company-backends)
-                                   (cons '(company-ledger-acct company-yankpad)
-                                          company-backends)))))
-    :custom (company-ledger-acct-master-file "~/accounts.dat")
-            (company-ledger-acct-currency-symbol "₹"))
+(use-package company-ledger-acct
+      :straight (company-ledger-acct :type git :host github :repo "sid-kurias/company-ledger-acct")
+      :after (ledger-mode)
+      :hook  ((ledger-mode . (lambda ()
+                               (set (make-local-variable 'company-backends)
+                                    (list '(company-ledger-acct company-yasnippet))))))
+      :custom (company-ledger-acct-master-file "~/accounts.dat")
+      (company-ledger-acct-currency-symbol "₹"))
 ```
 
 ## Acknowledgments
