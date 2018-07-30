@@ -66,12 +66,19 @@
   :type 'file
   :group 'company-ledger-acct)
 
-(defun company-ledger-acct--regexp-filter (regexp list)
-  "Use REGEXP to filter LIST of strings."
+(defun company-ledger-acct--regexp-filter (regexp list type)
+  "Use REGEXP to filter LIST of strings.
+REGEXP determines how to parse the master file.
+LIST is the data from the master file to be filtered.
+TYPE is what kind of data we are processing."
   (let (new)
     (dolist (string list)
       (when (string-match regexp string)
-        (setq new (cons (match-string 1  string) new))))
+        (let ((matched-string (match-string 1 string)))
+          ;; set text property either to "account" or "payee"
+          ;; use the text property in post completion.
+          (set-text-properties 0 1 `(type ,type) matched-string)
+          (setq new (cons matched-string new)))))
     new))
 
 
@@ -79,10 +86,21 @@
   "Read the master file that has the account descriptions."
   (company-ledger-acct--regexp-filter
    "^account \\(.*\\)"
-   (mapcar #'(lambda (s) (identity s))
+   (mapcar #'(lambda (s)  s)
            (with-temp-buffer
              (insert-file-contents company-ledger-acct-master-file)
-             (split-string (buffer-string) "\n" t)))))
+             (split-string (buffer-string) "\n" t)))
+   "account"))
+
+(defun company-ledger-acct--get-all-payees ()
+  "Read the master file that has the payee descriptions."
+  (company-ledger-acct--regexp-filter
+   "^payee \\(.*\\)"
+   (mapcar #'(lambda (s)  s)
+           (with-temp-buffer
+             (insert-file-contents company-ledger-acct-master-file)
+             (split-string (buffer-string) "\n" t)))
+   "payee"))
 
 (defun company-ledger-acct--fuzzy-word-match (prefix candidate)
   "Return non-nil if each (partial) word in PREFIX is also in CANDIDATE."
@@ -91,6 +109,18 @@
             (mapcar
              #'(lambda (pre) (string-match-p (regexp-quote pre) candidate))
              (split-string prefix)))))
+
+(defun company-ledger-acct--get-payees-p (arg)
+  "Determine is user needs to be prompted with payee information.
+If the line starts with a date (new transaction), or if a meta data
+tag (Payee:) is present before point, return true
+ARG is the string the user has typed into the buffer"
+  (interactive)
+  (let ((case-fold-search nil))
+    ;; must append the user entered string as that too will be present in the buffer
+    (if (or (looking-back (concat "Payee\:[\t\r\v\f ]*" arg) )
+            (string-match-p "^[0-9][0-9][0-9][0-9][\-/][0-9][0-9][\-/][0-9][0-9]" (thing-at-point 'line)))
+        t nil)))
 
 ;;;###autoload
 (defun company-ledger-acct (command &optional arg &rest ignored)
@@ -102,10 +132,14 @@
     (candidates
      (cl-remove-if-not
       (lambda (c) (company-ledger-acct--fuzzy-word-match arg c))
-      (company-ledger-acct--get-all-accts)))
+      (if (company-ledger-acct--get-payees-p arg)
+          (company-ledger-acct--get-all-payees)
+        (company-ledger-acct--get-all-accts))))
     (post-completion
-     (progn  (delete-region(+ (line-beginning-position) (current-indentation)) (point))
-             (insert(concat arg "      " company-ledger-acct-currency-symbol))))
+            (if (string= "account" (get-text-property 0 'type arg))
+                (progn
+                  (delete-region(+ (line-beginning-position) (current-indentation)) (point))
+                  (insert(concat arg "      " company-ledger-acct-currency-symbol)))))
     (sorted t)))
 
 (provide 'company-ledger-acct)
