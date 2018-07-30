@@ -37,6 +37,7 @@
 ;; This requires that a set of accounts are pre configured using the
 ;; /accounts/ keyword, and the file where these definitions are
 ;; available is defined in the variable company-ledger-acct-master-file.
+;; Added support for payee information too.
 ;; A possible configuration using use-package :
 ;; (use-package ledger-mode
 ;;    :mode "\\.ledger"

@@ -6,6 +6,8 @@ The string entered triggers a completion as long as it matches any
 part of an account name. Once a candidate is selected the account name
 is inserted and a currency symbol (if provided) is appended.  
 
+Added support for payee information too.  
+
 The currency symbol is defined by company-ledger-acct-currency-symbol.  
 
 This package requires that a set of accounts are pre configured using the
