@@ -14,6 +14,12 @@ This package requires that a set of accounts are pre configured using the
 accounts keyword, and the file where these definitions are
 available is defined in the variable company-ledger-acct-master-file.
 
+## How does it work
+When on a line that starts with an ISO date format - as when starting
+a new transaction - or after a Payee: meta data tag you will be
+presented with payee information. At all other times you will be
+presented with account information.
+
 ## Setup
 A possible configuration using use-package :
 
