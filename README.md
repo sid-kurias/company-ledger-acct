@@ -17,8 +17,9 @@ available is defined in the variable company-ledger-acct-master-file.
 ## How does it work
 When on a line that starts with an ISO date format - as when starting
 a new transaction - or after a Payee: meta data tag you will be
-presented with payee information. At all other times you will be
-presented with account information.
+presented with payee information.  
+
+When on a line that contains only spaces preceeding the user input, you will be presented with account information.
 
 ## Setup
 A possible configuration using use-package :

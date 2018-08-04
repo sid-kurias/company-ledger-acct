@@ -123,6 +123,16 @@ ARG is the string the user has typed into the buffer"
             (string-match-p "^[0-9][0-9][0-9][0-9][\-/][0-9][0-9][\-/][0-9][0-9]" (thing-at-point 'line)))
         t nil)))
 
+(defun company-ledger-acct--get-accts-p (arg)
+  "Determine whether the user should be prompted for accounts.
+If the only characters preceeding the ARG are spaces, then the
+user is likely to be entering account information."
+  (interactive)
+  (if (string-match-p "^[ \t\r\f\v]*$"
+                      (buffer-substring-no-properties (line-beginning-position)
+                                                      (- ( point ) (length arg))))
+      t nil))
+
 ;;;###autoload
 (defun company-ledger-acct (command &optional arg &rest ignored)
   "Company backend to prompt for account names."
@@ -135,7 +145,8 @@ ARG is the string the user has typed into the buffer"
       (lambda (c) (company-ledger-acct--fuzzy-word-match arg c))
       (if (company-ledger-acct--get-payees-p arg)
           (company-ledger-acct--get-all-payees)
-        (company-ledger-acct--get-all-accts))))
+        (if  (company-ledger-acct--get-accts-p arg)
+            (company-ledger-acct--get-all-accts)))))
     (post-completion
             (if (string= "account" (get-text-property 0 'type arg))
                 (progn
